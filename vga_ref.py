@@ -3,10 +3,6 @@ import statistics
 import re
 from db_config import get_connection
 
-conn = get_connection()
-cursor = conn.cursor()
-
-# GPU 이름 정제 함수
 def extract_gpu_info(text):
     pattern = re.search(
         r'(지포스|라데온)\s+'
@@ -30,43 +26,40 @@ def extract_gpu_info(text):
         return model.strip()
     return None
 
-# 1. GPU만 정제해서 임시 저장
-cursor.execute("SELECT name, date, price FROM vga_ref")
-rows = cursor.fetchall()
+def run():
+    conn = get_connection()
+    cursor = conn.cursor()
 
-# {(refined_name, date): [price1, price2, ...]} 형태로 그룹핑
-grouped = {}
-for name, date, price in rows:
-    refined = extract_gpu_info(name)
-    if refined and price > 0:  # 가격이 0 초과인 경우만 포함
-        key = (refined, date)
-        grouped.setdefault(key, []).append(price)
+    # 1. GPU만 정제해서 임시 저장
+    cursor.execute("SELECT name, date, price FROM vga_ref")
+    rows = cursor.fetchall()
 
-# 2. 통계 계산 및 결과 저장
-# 테이블은 다음 구조로 생성되어 있어야 함:
-# CREATE TABLE ref_vga_stats (
-#   num INT AUTO_INCREMENT PRIMARY KEY,
-#   name VARCHAR(255),
-#   date DATE,
-#   avg_price INT,
-#   min_price INT,
-#   max_price INT,
-#   std_dev FLOAT
-# );
+    # {(refined_name, date): [price1, price2, ...]} 형태로 그룹핑
+    grouped = {}
+    for name, date, price in rows:
+        refined = extract_gpu_info(name)
+        if refined and price > 0:  # 가격이 0 초과인 경우만 포함
+            key = (refined, date)
+            grouped.setdefault(key, []).append(price)
 
-for (refined_name, date), price_list in grouped.items():
-    avg_price = round(sum(price_list) / len(price_list))
-    min_price = min(price_list)
-    max_price = max(price_list)
-    std_dev = round(statistics.stdev(price_list), 2) if len(price_list) > 1 else 0.0
+    # 2. 통계 계산 및 결과 저장
+    for (refined_name, date), price_list in grouped.items():
+        avg_price = round(sum(price_list) / len(price_list))
+        min_price = min(price_list)
+        max_price = max(price_list)
+        std_dev = round(statistics.stdev(price_list), 2) if len(price_list) > 1 else 0.0
 
-    cursor.execute(
-        "INSERT INTO ref_vga_stats (name, date, avg_price, min_price, max_price, std_dev) "
-        "VALUES (%s, %s, %s, %s, %s, %s)",
-        (refined_name, date, avg_price, min_price, max_price, std_dev)
-    )
+        cursor.execute(
+            "INSERT INTO ref_vga_stats (name, date, avg_price, min_price, max_price, std_dev) "
+            "VALUES (%s, %s, %s, %s, %s, %s)",
+            (refined_name, date, avg_price, min_price, max_price, std_dev)
+        )
 
-# 마무리
-conn.commit()
-cursor.close()
-conn.close()
+    # 마무리
+    conn.commit()
+    cursor.close()
+    conn.close()
+    print("📊 통계 완료: ref_vga_stats 테이블에 저장됨.")
+
+if __name__ == "__main__":
+    run()

@@ -6,22 +6,28 @@ dbinsert.py -> vga_cleaner.py -> vga_ref.py
 
 -------------------------테이블생성------------------------
 
-CREATE TABLE `danawa_crawler_data`.`vga_price` (
+CREATE TABLE `스키마 이름`.`vga_price` (
   `num` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NULL,
   `date` DATE NULL,
   `price` INT NULL,
   PRIMARY KEY (`num`));
 
+CREATE TABLE `스키마 이름`.`vga_ref` (
+  `num` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NULL,
+  `date` DATE NULL,
+  `price` INT NULL,
+  PRIMARY KEY (`num`));
 
-CREATE TABLE ref_vga_stats (
-  num INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(255),
-  date DATE,
-  avg_price INT,
-  min_price INT,
-  max_price INT,
-  std_dev FLOAT
+CREATE TABLE `스키마이름`.`ref_vga_stats` (
+  `num` INT AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(255),
+  `date` DATE,
+  `avg_price` INT,
+  `min_price` INT,
+  `max_price` INT,
+  `std_dev` FLOAT
 );
 
 -------------------------단종제거------------------------

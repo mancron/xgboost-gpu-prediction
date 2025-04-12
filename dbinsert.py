@@ -4,14 +4,6 @@ import mysql.connector
 import re  # 정규 표현식 사용
 from db_config import get_connection
 
-# MySQL 연결 설정
-
-conn = get_connection()
-cursor = conn.cursor()
-
-data_folder = "Data"  # 데이터가 있는 폴더
-
-
 def extract_price(price_info):
     """ '정품_'이 포함된 데이터에서 마지막 숫자 가격만 추출하는 함수 """
     if "정품_" in price_info:
@@ -22,8 +14,7 @@ def extract_price(price_info):
         return price_info.replace(",", "")
     return None
 
-
-def insert_csv_to_db(file_path, table_name):
+def insert_csv_to_db(file_path, table_name, cursor):
     """ 주어진 CSV 파일에서 가격을 추출하고 지정된 테이블에 삽입 """
     if not os.path.exists(file_path):
         print(f"파일 없음: {file_path}")
@@ -59,14 +50,15 @@ def insert_csv_to_db(file_path, table_name):
     except Exception as e:
         print(f"예외 발생 ({file_path}): {e}")
 
+def run():
+    data_folder = "Data"
+    table_mapping = {
+        "VGA.csv": "vga_price",
+    }
 
-# 파일 이름과 테이블 이름 매핑
-table_mapping = {
-    "VGA.csv": "vga_price",
-}
+    conn = get_connection()
+    cursor = conn.cursor()
 
-# 2020-07 ~ 2025-02 폴더 순회
-if __name__ == "__main__":
     for year in range(2023, 2026):
         for month in range(1, 13):
             folder_name = f"{year}-{month:02d}"
@@ -76,10 +68,13 @@ if __name__ == "__main__":
 
             for file_name, table_name in table_mapping.items():
                 file_path = os.path.join(folder_path, file_name)
-                insert_csv_to_db(file_path, table_name)
+                insert_csv_to_db(file_path, table_name, cursor)
 
             print(f"{year}-{month} 삽입완료")
 
     conn.commit()
     conn.close()
     print("모든 데이터 삽입 완료 및 MySQL 연결 종료!")
+
+if __name__ == "__main__":
+    run()
