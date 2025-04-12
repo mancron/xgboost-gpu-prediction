@@ -1,14 +1,23 @@
 import pymysql
 from sqlalchemy import create_engine
 
+# DB 설정을 한 곳에서 관리
+DB_USER = 'root'
+DB_PASSWORD = '0000'
+DB_NAME = 'test'
+DB_HOST = 'localhost'
+DB_CHARSET = 'utf8'
+
 def get_engine():
-    return create_engine("mysql+pymysql://root:0000@localhost/danawa_crawler_data")
+    return create_engine(
+        f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+    )
 
 def get_connection():
     return pymysql.connect(
-        host='localhost',
-        user='root',
-        password='0000',
-        db='danawa_crawler_data',
-        charset='utf8'
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        db=DB_NAME,
+        charset=DB_CHARSET
     )

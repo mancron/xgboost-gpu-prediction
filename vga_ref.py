@@ -1,14 +1,9 @@
 import mysql.connector
 import statistics
 import re
+from db_config import get_connection
 
-# DB 연결
-conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="0000",
-    database="danawa_crawler_data"
-)
+conn = get_connection()
 cursor = conn.cursor()
 
 # GPU 이름 정제 함수
