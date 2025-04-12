@@ -9,7 +9,7 @@ from db_config import get_connection
 conn = get_connection()
 cursor = conn.cursor()
 
-data_folder = "data"  # 데이터가 있는 폴더
+data_folder = "Data"  # 데이터가 있는 폴더
 
 
 def extract_price(price_info):
