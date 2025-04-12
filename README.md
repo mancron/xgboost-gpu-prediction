@@ -1,5 +1,5 @@
-dbinsert.py -> vga_cleaner.py -> vga_ref.py
 
+데이터베이스 없을시 스키마와 테이블 생성후 DB_insert.py 실행
 
 
 
