@@ -103,7 +103,7 @@ def run():
     conn.commit()
     cursor.close()
     conn.close()
-    print("📊 2단계 분류 통계 완료: ref_vga_stats 테이블에 저장됨.")
+    print(" 2단계 분류 통계 완료: ref_vga_stats 테이블에 저장됨.")
 
 if __name__ == "__main__":
     run()

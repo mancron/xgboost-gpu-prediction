@@ -1,27 +1,59 @@
+Mysql 사용
 
-데이터베이스 없을시 스키마와 테이블 생성후  db_config.py 에서 DB_NAME 수정후
-DB_insert.py 실행
+
+인터프린터 적용 명령어(터미널에서 실행)
+
+pip install -r requirements.txt
+
+
+
+데이터베이스 없을시 스키마와 테이블 생성후
+
+
+db_config.py 
+데이터베이스 이름
+DB_USER = 'root'
+DB_PASSWORD = '0000'
+DB_NAME = 'test'
+DB_HOST = 'localhost'
+관리
+
+DB_insert.py
+데이터베이스 
+데이터 삽입
+정제
+(3분 정도 걸림)
+
+main_gui.py
+실행후 그래픽카드 모델을 선택후 2개월 예측 버튼을 누르면 2개월 예측 그래프 표시
+
 
 
 
 
 -------------------------테이블생성------------------------
 
-CREATE TABLE `스키마 이름`.`vga_price` (
+
+CREATE DATABASE test;
+
+
+USE test;
+
+CREATE TABLE `test`.`vga_price` (
   `num` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NULL,
   `date` DATE NULL,
   `price` INT NULL,
   PRIMARY KEY (`num`));
 
-CREATE TABLE `스키마 이름`.`vga_ref` (
+CREATE TABLE `test`.`vga_ref` (
   `num` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NULL,
   `date` DATE NULL,
   `price` INT NULL,
   PRIMARY KEY (`num`));
 
-CREATE TABLE `스키마이름`.`ref_vga_stats` (
+CREATE TABLE `test`.`ref_vga_stats` (
   `num` INT AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(255),
   `date` DATE,
@@ -30,38 +62,3 @@ CREATE TABLE `스키마이름`.`ref_vga_stats` (
   `max_price` INT,
   `std_dev` FLOAT
 );
-
--------------------------단종제거------------------------
-연속된 날짜 구간에서 가격이 0인 데이터만 필터링
-연속된 날짜들끼리 그룹핑하기 위해 ROW_NUMBER() 윈도우 함수 사용
-그 그룹 중에서 날짜 수가 20 이상인 name만 추출
-해당 name의 데이터를 전부 삭제
-
-
-WITH zero_price_rows AS (
-  SELECT
-    name,
-    date,
-    price,
-    ROW_NUMBER() OVER (PARTITION BY name ORDER BY date) AS rn
-  FROM danawa_crawler_data.vga_price
-  WHERE price = 0
-),
-grouped_zero AS (
-  SELECT
-    name,
-    date,
-    DATE_SUB(date, INTERVAL rn DAY) AS grp
-  FROM zero_price_rows
-),
-grouped_count AS (
-  SELECT
-    name,
-    COUNT(*) AS zero_days
-  FROM grouped_zero
-  GROUP BY name, grp
-  HAVING COUNT(*) >= 20
-)
-DELETE FROM danawa_crawler_data.vga_price
-WHERE name IN (SELECT name FROM grouped_count);
-

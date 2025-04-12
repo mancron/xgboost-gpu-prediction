@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 # DB 설정을 한 곳에서 관리
 DB_USER = 'root'
 DB_PASSWORD = '0000'
-DB_NAME = 'test2'
+DB_NAME = 'test'
 DB_HOST = 'localhost'
 DB_CHARSET = 'utf8'
 

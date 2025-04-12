@@ -1,7 +1,6 @@
 import dbinsert
 import vga_ref
 import vga_cleaner
-import db_config
 
 print("데이터베이스 삽입시작")
 dbinsert.run()

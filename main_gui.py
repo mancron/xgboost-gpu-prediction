@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 import mplcursors
 
-# ✅ 한글 폰트 설정
+# 한글 폰트 설정
 matplotlib.rcParams['font.family'] = 'Malgun Gothic'
 matplotlib.rcParams['axes.unicode_minus'] = False
 
@@ -46,7 +46,7 @@ class PricePredictorApp:
             self.result_label.config(text="데이터가 충분하지 않습니다.")
             return
 
-        # ✅ 2개월치 예측 (60일)
+        # 2개월치 예측 (60일)
         pred_prices, future_dates = self.predict_next_n_days(model, latest_row, 60)
 
         # 과거 데이터
@@ -64,14 +64,14 @@ class PricePredictorApp:
         row = latest_row.copy()
         gpu_name = self.gpu_combo.get()
 
-        # ✅ 실제 해당 GPU의 최신 날짜 사용
+        # 실제 해당 GPU의 최신 날짜 사용
         df_gpu = self.df[self.df['name'] == gpu_name]
         current_date = df_gpu['date'].max()
 
-        # ✅ 미래 평일 날짜 생성
+        # 미래 평일 날짜 생성
         future_dates = pd.bdate_range(start=current_date + pd.Timedelta(days=1), periods=days)
 
-        # ✅ 최근 30일 로그 평균가
+        # 최근 30일 로그 평균가
         recent_prices = list(df_gpu['avg_price'].values[-30:])
         recent_real_prices = list(np.expm1(df_gpu['avg_price'].values[-30:]))
 
@@ -94,7 +94,7 @@ class PricePredictorApp:
             std_estimate = np.std(recent_real_prices) if len(recent_real_prices) > 1 else row.loc[
                 row.index[0], 'std_dev']
 
-            # ✅ row 피처 갱신
+            # row 피처 갱신
             row = row.copy()
             row.loc[row.index[0], 'avg_price'] = log_pred
             row.loc[row.index[0], 'avg_price_pct_change'] = pct_change
@@ -104,12 +104,12 @@ class PricePredictorApp:
 
             print(f"[{day.date()}] log_pred: {log_pred:.4f}, pct: {pct_change:.4f}, ma7: {ma7:.4f}, ma30: {ma30:.4f}")
 
-        # ✅ 예측 시작점 보정
+        # 예측 시작점 보정
         last_real_price = np.expm1(latest_row['avg_price'].values[0])
         offset = last_real_price - preds[0]
         preds = [p + offset for p in preds]
 
-        # ✅ 앞부분 스무딩
+        # 앞부분 스무딩
         n_smooth_days = 5
         for i in range(n_smooth_days):
             weight = (i + 1) / (n_smooth_days + 1)
@@ -119,20 +119,20 @@ class PricePredictorApp:
 
     def draw_plot(self, df_gpu, future_dates, pred_prices):
         plt.clf()
-        fig, ax = plt.subplots(figsize=(10, 4), dpi=100)  # ✅ 더 넓은 사이즈로 확대
+        fig, ax = plt.subplots(figsize=(10, 4), dpi=100)  # 더 넓은 사이즈로 확대
 
         df_gpu['avg_price_real'] = np.expm1(df_gpu['avg_price'])
 
-        # ✅ 과거 가격
+        # 과거 가격
         ax.plot(df_gpu['date'], df_gpu['avg_price_real'], label='과거 평균가', color='blue')
 
-        # ✅ 예측 가격
+        # 예측 가격
         ax.plot(future_dates, pred_prices, label='예측가 (60일)', color='red', linestyle='--')
 
-        # ✅ 예측 시작점
+        # 예측 시작점
         ax.plot(future_dates[:1], pred_prices[:1], 'o', color='green', label='예측 시작점')
 
-        # ✅ 예측 시작선 표시
+        # 예측 시작선 표시
         ax.axvline(df_gpu['date'].max(), color='gray', linestyle='--', alpha=0.5)
 
         ax.set_title('가격 추세 및 2개월 예측')
@@ -140,11 +140,11 @@ class PricePredictorApp:
         ax.set_ylabel('가격 (원)')
         ax.legend()
 
-        # ✅ 날짜 간격 띄우기 + 자동 회전
+        # 날짜 간격 띄우기 + 자동 회전
         fig.autofmt_xdate(rotation=30)  # X축 날짜 기울이기
         ax.xaxis.set_major_locator(plt.MaxNLocator(10))  # 최대 10개 정도만 표시
 
-        # ✅ 캔버스 다시 그리기
+        # 캔버스 다시 그리기
         if hasattr(self, 'canvas'):
             self.canvas.get_tk_widget().destroy()
 
