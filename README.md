@@ -1,5 +1,6 @@
 
-데이터베이스 없을시 스키마와 테이블 생성후 DB_insert.py 실행
+데이터베이스 없을시 스키마와 테이블 생성후  db_config.py 에서 DB_NAME 수정후
+DB_insert.py 실행
 
 
 
