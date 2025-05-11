@@ -1,20 +1,20 @@
-# model_utils.py
 import pandas as pd
+import numpy as np
 from xgboost import XGBRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
-import numpy as np
 from db_config import get_engine
 
 
+# 데이터 로드 함수
 def load_data():
     engine = get_engine()
-    query = "SELECT name, date, avg_price, min_price, max_price, std_dev FROM ref_vga_stats"
+    query = "SELECT name, date, avg_price, std_dev FROM ref_vga_stats"
     df = pd.read_sql(query, engine)
     return df
 
 
-
+# 데이터 전처리 함수
 def preprocess_data(df):
     df['date'] = pd.to_datetime(df['date'])
     df = df.sort_values(['name', 'date'])
@@ -28,12 +28,7 @@ def preprocess_data(df):
 
     # 로그 변환 (로그1p = log(x + 1), 0 이상에서 안정적)
     df['avg_price'] = np.log1p(df['avg_price'])
-    df['min_price'] = np.log1p(df['min_price'])
-    df['max_price'] = np.log1p(df['max_price'])
-
-    df['avg_price_pct_change'] = df.groupby('name')['avg_price'].pct_change()
-    df['avg_price_ma7'] = df.groupby('name')['avg_price'].transform(lambda x: x.rolling(7).mean())
-    df['avg_price_ma30'] = df.groupby('name')['avg_price'].transform(lambda x: x.rolling(30).mean())
+    df['std_dev'] = np.log1p(df['std_dev'])
 
     # 타깃 변수도 로그 적용한 avg_price 기준으로 설정
     df['target'] = df.groupby('name')['avg_price'].shift(-1)
@@ -42,14 +37,13 @@ def preprocess_data(df):
     return df
 
 
+# GPU 가격 예측 모델 학습
 def train_model(df, gpu_name):
     df_gpu = df[df['name'] == gpu_name]
     if len(df_gpu) < 50:
-        return None, None
+        return None, None, "데이터가 부족하여 모델을 학습할 수 없습니다."
 
-    # min_price, max_price 제거
-    feature_cols = ['avg_price', 'std_dev',
-                    'avg_price_pct_change', 'avg_price_ma7', 'avg_price_ma30']
+    feature_cols = ['avg_price', 'std_dev']
     X = df_gpu[feature_cols]
     y_log = df_gpu['target']
 
@@ -57,16 +51,19 @@ def train_model(df, gpu_name):
     X_train, X_test, y_train_log, y_test_log = train_test_split(X, y_log, test_size=0.2, shuffle=False)
     y_test_real = np.expm1(y_test_log)
 
-    model = XGBRegressor(n_estimators=100, learning_rate=0.1, max_depth=5)
-    model.fit(X_train, y_train_log)
+    model = XGBRegressor(
+        n_estimators=1000,
+        learning_rate=0.05,
+        max_depth=5,
+        tree_method='hist',
+        device='cpu',
+        subsample=0.8,
+    )
 
-    y_pred_log = model.predict(X_test)
+    model.fit(X_train.to_numpy(), y_train_log.to_numpy())
+    y_pred_log = model.predict(X_test.to_numpy())
     y_pred_real = np.expm1(y_pred_log)
 
     rmse = np.sqrt(mean_squared_error(y_test_real, y_pred_real))
 
     return model, df_gpu.iloc[-1:][feature_cols], rmse
-
-def predict_price(model, latest_row):
-    log_pred = model.predict(latest_row)[0]
-    return np.expm1(log_pred)  # 로그 복원

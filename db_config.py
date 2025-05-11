@@ -1,7 +1,8 @@
 import pymysql
+import pandas as pd
 from sqlalchemy import create_engine
 
-# DB 설정을 한 곳에서 관리
+# DB 설정
 DB_USER = 'root'
 DB_PASSWORD = '0000'
 DB_NAME = 'test2'
@@ -21,3 +22,4 @@ def get_connection():
         db=DB_NAME,
         charset=DB_CHARSET
     )
+
