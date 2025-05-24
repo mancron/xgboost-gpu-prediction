@@ -56,5 +56,6 @@ CREATE TABLE `test`.`ref_vga_stats` (
   `avg_price` INT,
   `min_price` INT,
   `max_price` INT,
-  `std_dev` FLOAT
+  `std_dev` FLOAT,
+  `std_performance` INT
 );
